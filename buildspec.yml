@@ -1,0 +1,36 @@
+version: 0.2
+
+env:
+  variables:
+    NODE_ENV: "production"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 12
+  pre_build:
+    commands:
+      - echo Installing source NPM dependencies...
+      - npm install --only=dev
+      - npm install
+  build:
+    commands:
+      - echo Build started on `date`
+      - npm run build
+  post_build:
+    commands:
+      - echo Cleaning build dependencies
+      - npm prune --production
+    finally:
+      - export BUCKET=codepipeline-us-east-2-cloudformation-packages
+      - export BUCKET_PREFIX=iamnater_com-auth
+      - aws cloudformation package --template-file template.yml --s3-bucket $BUCKET --s3-prefix $BUCKET_PREFIX --output-template-file outputtemplate.yml
+
+artifacts:
+  type: zip
+  files:
+    - "index.js"
+    - "template.yml"
+    - "outputtemplate.yml"
+    - "dist/**/*.js"
+    - "node_modules/**/*"
