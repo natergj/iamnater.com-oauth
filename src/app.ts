@@ -1,10 +1,22 @@
 import fastify from "fastify";
+import fastifyCors from 'fastify-cors';
+
 import OpenIdClient from "./openIdClient";
 
 function init() {
   const app = fastify({
     logger: true
   });
+  app.register(fastifyCors, {
+    origin: (origin, cb) => {
+      if(/(^https:\/\/\w*\.?iamnater\.com$)|(^https?:\/\/localhost:\d*$)|(^http:\/\/www\.iamnater\.com\.s3-website\.us-east-2\.amazonaws\.com$)/.test(origin)){
+        //  Request from localhost will pass
+        cb(null, true)
+        return
+      }
+      cb(new Error("Not allowed"), false)
+    }
+  })
 
   app.post("/oauth/exchange-token", async (req, reply) => {
     try {
