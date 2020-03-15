@@ -8,19 +8,13 @@ function init() {
     logger: true
   });
   app.register(fastifyCors, {
-    origin: (origin, cb) => {
-      if(/(^https:\/\/\w*\.?iamnater\.com$)|(^https?:\/\/localhost:\d*$)|(^http:\/\/www\.iamnater\.com\.s3-website\.us-east-2\.amazonaws\.com$)/.test(origin)){
-        //  Request from localhost will pass
-        cb(null, true)
-        return
-      }
-      cb(new Error("Not allowed"), false)
-    }
+    origin: /(^https:\/\/\w*\.?iamnater\.com$)|(^https?:\/\/localhost:\d*$)|(^http:\/\/www\.iamnater\.com\.s3-website\.us-east-2\.amazonaws\.com$)/,
+    methods: ['POST','OPTIONS']
   })
 
   app.post("/oauth/exchange-token", async (req, reply) => {
     try {
-      const { origin } = new URL(req.headers.referer);
+      const { origin } = new URL(req.headers.referer || req.headers.origin);
       const tokens = await OpenIdClient.exchangeTokenCode(
         req.body,
         origin,
